@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Minimal window-level theme; actual UI styling (13.1 purple-gradient/rounded-card
+      language) is implemented in Compose (presentation/common/theme) starting Milestone D,
+      not here. This only controls the pre-Compose window background/status bar.
+    -->
+    <style name="Theme.SecureVault" parent="android:Theme.Material.Light.NoActionBar" />
+</resources>

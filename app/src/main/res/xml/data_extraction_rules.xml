@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Spec section 10 backup-inclusion table. Filenames must stay in sync with the named
+  constants they mirror — SecureVaultDatabase.DATABASE_NAME ("securevault.db", Room's
+  default location is databases/<name> plus -wal/-shm journal files, which the "database"
+  domain covers automatically) and DataStoreKeyMaterialStore.DATASTORE_NAME /
+  AppPreferencesImpl.DATASTORE_NAME (Preferences DataStore's default location is
+  files/datastore/<name>.preferences_pb, the "file" domain).
+
+  Local Wrapped Key (inside key_material) is backed up along with everything else in that
+  file but is "meaningless" on a new device per spec 10's table — it's simply never read
+  there (KeyLifecycleOrchestrator.beginRestore only reads the Recovery-prefixed fields), so
+  no separate exclusion rule is needed. Device Master Key itself is Keystore-resident and is
+  never file-backed at all, so it cannot leak into a backup regardless.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <include domain="database" path="securevault.db" />
+        <include domain="file" path="datastore/key_material.preferences_pb" />
+        <include domain="file" path="datastore/app_preferences.preferences_pb" />
+    </cloud-backup>
+    <device-transfer>
+        <include domain="database" path="securevault.db" />
+        <include domain="file" path="datastore/key_material.preferences_pb" />
+        <include domain="file" path="datastore/app_preferences.preferences_pb" />
+    </device-transfer>
+</data-extraction-rules>
