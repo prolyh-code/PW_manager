@@ -10,8 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.securecredential.R
 
 /** Spec 13.3 — brand intro, "Get Started" leads into Security Setup. */
 @Composable
@@ -21,15 +23,15 @@ fun FirstLaunchScreen(onGetStarted: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("SecureVault", style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center)
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.displaySmall, textAlign = TextAlign.Center)
         Text(
-            "Your credentials, encrypted end to end on this device.",
+            stringResource(R.string.first_launch_tagline),
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(top = 16.dp, bottom = 48.dp)
         )
         Button(onClick = onGetStarted) {
-            Text("Let's Go")
+            Text(stringResource(R.string.action_get_started))
         }
     }
 }

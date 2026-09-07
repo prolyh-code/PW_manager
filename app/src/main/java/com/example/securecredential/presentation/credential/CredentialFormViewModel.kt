@@ -3,6 +3,8 @@ package com.example.securecredential.presentation.credential
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.securecredential.R
+import com.example.securecredential.core.util.UiText
 import com.example.securecredential.domain.model.Credential
 import com.example.securecredential.domain.usecase.CheckPasswordReuseUseCase
 import com.example.securecredential.domain.usecase.CreateCredentialUseCase
@@ -38,7 +40,7 @@ data class CredentialFormUiState(
     val usernameSuggestions: List<CredentialSummary> = emptyList(),
     val isLoading: Boolean = false,
     val isSaving: Boolean = false,
-    val errorMessage: String? = null,
+    val errorMessage: UiText? = null,
     val saved: Boolean = false
 ) {
     val isEditing: Boolean get() = credentialId != null
@@ -81,7 +83,7 @@ class CredentialFormViewModel @Inject constructor(
                         )
                     }
                 },
-                onFailure = { e -> _uiState.update { it.copy(isLoading = false, errorMessage = e.message) } }
+                onFailure = { e -> _uiState.update { it.copy(isLoading = false, errorMessage = e.message?.let { m -> UiText.Dynamic(m) }) } }
             )
         }
     }
@@ -163,7 +165,10 @@ class CredentialFormViewModel @Inject constructor(
             }
             result.fold(
                 onSuccess = { _uiState.update { it.copy(isSaving = false, saved = true) } },
-                onFailure = { e -> _uiState.update { it.copy(isSaving = false, errorMessage = e.message ?: "Save failed") } }
+                onFailure = { e ->
+                    val message = e.message?.let { UiText.Dynamic(it) } ?: UiText.of(R.string.error_save_failed)
+                    _uiState.update { it.copy(isSaving = false, errorMessage = message) }
+                }
             )
         }
     }

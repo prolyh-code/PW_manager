@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Korean translations — this is the app's default (see core/util/AppLanguage). -->
+<resources>
+    <string name="action_continue">계속</string>
+    <string name="action_cancel">취소</string>
+    <string name="action_save">저장</string>
+    <string name="action_edit">수정</string>
+    <string name="action_delete">삭제</string>
+    <string name="action_next">다음</string>
+    <string name="action_back">뒤로</string>
+    <string name="action_add">+</string>
+    <string name="action_add_credential_description">자격증명 추가</string>
+
+    <string name="first_launch_tagline">기기에서 종단간 암호화되는 자격증명 관리 앱입니다.</string>
+    <string name="action_get_started">시작하기</string>
+
+    <string name="security_setup_biometric_title">생체 인증을 사용하시겠습니까?</string>
+    <string name="security_setup_biometric_toggle_label">지문 / 얼굴 인식 잠금 해제 사용</string>
+    <string name="security_setup_pin_create_title">PIN 등록</string>
+    <string name="security_setup_pin_hint">최소 %1$d자리 — 이 PIN은 백업 복구에도 사용됩니다.</string>
+    <string name="security_setup_pin_confirm_title">PIN 확인</string>
+    <string name="security_setup_autolock_title">자동 잠금</string>
+    <string name="autolock_option_15s">15초</string>
+    <string name="autolock_option_30s">30초</string>
+    <string name="autolock_option_1m">1분</string>
+    <string name="autolock_option_5m">5분</string>
+    <string name="action_finish_setup">설정 완료</string>
+    <string name="error_pin_too_short">PIN은 최소 %1$d자리 이상이어야 합니다</string>
+    <string name="error_pin_mismatch">PIN이 일치하지 않습니다 — 다시 시도해 주세요</string>
+    <string name="error_setup_failed">설정에 실패했습니다</string>
+
+    <string name="action_use_fingerprint">지문 사용</string>
+    <string name="action_use_pin">PIN 사용</string>
+    <string name="unlock_prompt_title">%1$s 잠금 해제</string>
+    <string name="error_biometric_not_recognized">인식되지 않았습니다 — 다시 시도해 주세요</string>
+    <string name="error_authentication_generic">인증 오류</string>
+    <string name="error_authentication_failed_default">인증에 실패했습니다</string>
+    <string name="error_unlock_failed_default">잠금 해제에 실패했습니다</string>
+
+    <string name="home_search_label">서비스명 또는 도메인으로 검색</string>
+    <string name="home_no_matches">아직 일치하는 항목이 없습니다 — 계속 입력하거나 검색 버튼으로 정확히 검색해 보세요.</string>
+    <string name="section_suggestions">추천 항목</string>
+    <string name="section_recent">최근 항목</string>
+    <string name="nav_home">홈</string>
+    <string name="nav_category">카테고리</string>
+    <string name="nav_settings">설정</string>
+
+    <string name="search_result_title_format">\"%1$s\"</string>
+    <string name="search_no_exact_match">정확한 서비스명 또는 도메인을 입력하세요</string>
+
+    <string name="action_hide">숨기기</string>
+    <string name="action_view">보기</string>
+    <string name="label_id">아이디</string>
+    <string name="label_password">비밀번호</string>
+    <string name="label_category">카테고리</string>
+    <string name="label_memo">메모</string>
+
+    <string name="title_edit_credential">자격증명 수정</string>
+    <string name="title_add_credential">자격증명 추가</string>
+    <string name="label_url">URL</string>
+    <string name="label_service_name">서비스명</string>
+    <string name="label_username_mask">아이디 마스크 (검색 결과에 표시될 형태)</string>
+    <string name="label_password_mask">비밀번호 마스크 (검색 결과에 표시될 형태)</string>
+    <string name="error_save_failed">저장에 실패했습니다</string>
+    <string name="reuse_dropdown_suggestion_format">%1$s · %2$s에서 이미 사용 중</string>
+
+    <string name="reuse_dialog_title">이미 사용 중인 비밀번호입니다</string>
+    <string name="reuse_dialog_body">다른 저장된 자격증명에서 이미 사용한 비밀번호입니다. 고유한 비밀번호 사용을 권장합니다.</string>
+    <string name="action_use_anyway">그대로 사용</string>
+    <string name="action_change_password">비밀번호 변경</string>
+
+    <string name="title_settings">설정</string>
+    <string name="section_authentication">인증</string>
+    <string name="label_biometric_unlock">생체 인증 잠금 해제</string>
+    <string name="action_change_pin">PIN 변경</string>
+    <string name="section_theme">테마</string>
+    <string name="theme_system">시스템 기본값</string>
+    <string name="theme_light">라이트</string>
+    <string name="theme_dark">다크</string>
+    <string name="section_language">언어</string>
+    <string name="language_korean">한국어</string>
+    <string name="language_english">English (영어)</string>
+    <string name="section_backup_restore">백업 / 복원</string>
+    <string name="action_manage_backup">백업 관리</string>
+    <string name="section_security">보안</string>
+    <string name="action_lock_now">지금 잠그기</string>
+    <string name="pin_change_title_old">현재 PIN 입력</string>
+    <string name="pin_change_title_new">새 PIN 입력</string>
+    <string name="pin_change_title_confirm">새 PIN 확인</string>
+    <string name="info_pin_changed">PIN이 변경되었습니다</string>
+    <string name="error_pin_change_failed">PIN 변경에 실패했습니다</string>
+
+    <string name="backup_restore_description">백업은 Android가 자동으로 처리합니다 (Cloud Backup / 기기 간 전송). 데이터가 복원된 새 기기라면, 아래에 기존 PIN을 입력해 자격증명을 복구하세요.</string>
+    <string name="label_restore_with_pin">PIN으로 복원</string>
+    <string name="action_restore">복원</string>
+    <string name="error_restore_decrypt_failed">복구된 키로 저장된 데이터를 복호화하지 못했습니다 (KEY-004)</string>
+    <string name="error_incorrect_pin">PIN이 올바르지 않습니다</string>
+    <string name="error_too_many_attempts_format">시도 횟수를 초과했습니다 — %1$d초 후 다시 시도해 주세요</string>
+    <string name="error_no_backup_data">이 기기에서 백업 데이터를 찾을 수 없습니다</string>
+    <string name="error_restore_failed_default">복원에 실패했습니다</string>
+
+    <string name="title_all_credentials">전체 자격증명</string>
+    <string name="empty_no_credentials">아직 저장된 자격증명이 없습니다.</string>
+    <string name="action_add_first_credential">첫 자격증명 등록하기</string>
+</resources>

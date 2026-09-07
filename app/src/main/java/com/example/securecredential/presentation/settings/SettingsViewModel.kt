@@ -2,7 +2,10 @@ package com.example.securecredential.presentation.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.securecredential.R
+import com.example.securecredential.core.util.AppLanguage
 import com.example.securecredential.core.util.PinPolicy
+import com.example.securecredential.core.util.UiText
 import com.example.securecredential.data.preferences.AppPreferences
 import com.example.securecredential.data.preferences.ThemeMode
 import com.example.securecredential.data.security.KeyLifecycleOrchestrator
@@ -23,16 +26,18 @@ enum class PinChangeStep { OLD_PIN, NEW_PIN, NEW_PIN_CONFIRM }
 data class SettingsUiState(
     val autoLockTimeoutSeconds: Long = 30,
     val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val language: AppLanguage = AppLanguage.DEFAULT,
     val biometricEnabled: Boolean = false,
     val isChangingPin: Boolean = false,
     val pinChangeStep: PinChangeStep = PinChangeStep.OLD_PIN,
     val oldPin: String = "",
     val newPin: String = "",
-    val errorMessage: String? = null,
-    val infoMessage: String? = null
+    val errorMessage: UiText? = null,
+    val infoMessage: UiText? = null
 )
 
-/** Spec 13.2 Settings sub-sections: Authentication, Auto Lock, Backup/Restore, Security, Theme. */
+/** Spec 13.2 Settings sub-sections: Authentication, Auto Lock, Backup/Restore, Security, Theme
+ *  (+ Language, added at the user's request — not in the original spec). */
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val appPreferences: AppPreferences,
@@ -40,7 +45,7 @@ class SettingsViewModel @Inject constructor(
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SettingsUiState())
+    private val _uiState = MutableStateFlow(SettingsUiState(language = AppLanguage.current()))
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
 
     private var pendingNewPin: String? = null
@@ -63,11 +68,17 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch { appPreferences.setThemeMode(mode) }
     }
 
+    /** AppCompatDelegate persists this itself (see core/util/AppLanguage) — no DataStore needed. */
+    fun setLanguage(language: AppLanguage) {
+        AppLanguage.apply(language)
+        _uiState.update { it.copy(language = language) }
+    }
+
     fun setBiometricEnabled(enabled: Boolean) {
         viewModelScope.launch {
             keyLifecycleOrchestrator.updateBiometricPreference(enabled).fold(
                 onSuccess = { _uiState.update { it.copy(biometricEnabled = enabled, infoMessage = null, errorMessage = null) } },
-                onFailure = { e -> _uiState.update { it.copy(errorMessage = e.message) } }
+                onFailure = { e -> _uiState.update { it.copy(errorMessage = e.message?.let { m -> UiText.Dynamic(m) }) } }
             )
         }
     }
@@ -96,7 +107,7 @@ class SettingsViewModel @Inject constructor(
     fun submitNewPin() {
         val newPin = _uiState.value.newPin
         if (!PinPolicy.isValid(newPin)) {
-            _uiState.update { it.copy(errorMessage = "PIN must be at least ${PinPolicy.MIN_NUMERIC_LENGTH} digits") }
+            _uiState.update { it.copy(errorMessage = UiText.of(R.string.error_pin_too_short, PinPolicy.MIN_NUMERIC_LENGTH)) }
             return
         }
         pendingNewPin = newPin
@@ -108,7 +119,7 @@ class SettingsViewModel @Inject constructor(
         val pending = pendingNewPin
         if (pending == null || pending != state.newPin) {
             _uiState.update {
-                it.copy(newPin = "", errorMessage = "PINs didn't match — try again", pinChangeStep = PinChangeStep.NEW_PIN)
+                it.copy(newPin = "", errorMessage = UiText.of(R.string.error_pin_mismatch), pinChangeStep = PinChangeStep.NEW_PIN)
             }
             return
         }
@@ -116,11 +127,16 @@ class SettingsViewModel @Inject constructor(
             keyLifecycleOrchestrator.onPinChange(state.oldPin.toCharArray(), pending.toCharArray()).fold(
                 onSuccess = {
                     pendingNewPin = null
-                    _uiState.update { it.copy(isChangingPin = false, infoMessage = "PIN changed") }
+                    _uiState.update { it.copy(isChangingPin = false, infoMessage = UiText.of(R.string.info_pin_changed)) }
                 },
                 onFailure = { e ->
+                    val message = e.message?.let { UiText.Dynamic(it) } ?: UiText.of(R.string.error_pin_change_failed)
                     _uiState.update {
-                        it.copy(errorMessage = e.message ?: "PIN change failed", pinChangeStep = PinChangeStep.OLD_PIN, oldPin = "")
+                        it.copy(
+                            errorMessage = message,
+                            pinChangeStep = PinChangeStep.OLD_PIN,
+                            oldPin = ""
+                        )
                     }
                 }
             )

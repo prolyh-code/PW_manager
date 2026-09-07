@@ -60,4 +60,68 @@ class HomeViewModelTest {
 
         assertEquals("db error", viewModel.uiState.value.errorMessage)
     }
+
+    @Test
+    fun `one character narrows suggestions to items whose domain or service name starts with it`() = runTest {
+        val google = CredentialSummary("id-1", "Google", "google.com", null, null)
+        val github = CredentialSummary("id-2", "GitHub", "github.com", null, null)
+        val amazon = CredentialSummary("id-3", "Amazon", "amazon.com", null, null)
+        val repo = FakeCredentialRepository().apply { listAllResult = Result.success(listOf(google, github, amazon)) }
+        val viewModel = HomeViewModel(ListCredentialsUseCase(repo))
+        dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onQueryChange("g")
+
+        assertEquals(setOf(google, github), viewModel.uiState.value.suggestions.toSet())
+    }
+
+    @Test
+    fun `a second character narrows suggestions further`() = runTest {
+        val google = CredentialSummary("id-1", "Google", "google.com", null, null)
+        val github = CredentialSummary("id-2", "GitHub", "github.com", null, null)
+        val repo = FakeCredentialRepository().apply { listAllResult = Result.success(listOf(google, github)) }
+        val viewModel = HomeViewModel(ListCredentialsUseCase(repo))
+        dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onQueryChange("go")
+
+        assertEquals(listOf(google), viewModel.uiState.value.suggestions)
+    }
+
+    @Test
+    fun `matching is case-insensitive`() = runTest {
+        val google = CredentialSummary("id-1", "Google", "google.com", null, null)
+        val repo = FakeCredentialRepository().apply { listAllResult = Result.success(listOf(google)) }
+        val viewModel = HomeViewModel(ListCredentialsUseCase(repo))
+        dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onQueryChange("GOO")
+
+        assertEquals(listOf(google), viewModel.uiState.value.suggestions)
+    }
+
+    @Test
+    fun `clearing the query clears suggestions`() = runTest {
+        val google = CredentialSummary("id-1", "Google", "google.com", null, null)
+        val repo = FakeCredentialRepository().apply { listAllResult = Result.success(listOf(google)) }
+        val viewModel = HomeViewModel(ListCredentialsUseCase(repo))
+        dispatcher.scheduler.advanceUntilIdle()
+        viewModel.onQueryChange("g")
+
+        viewModel.onQueryChange("")
+
+        assertEquals(emptyList<CredentialSummary>(), viewModel.uiState.value.suggestions)
+    }
+
+    @Test
+    fun `no matching prefix yields an empty suggestion list`() = runTest {
+        val google = CredentialSummary("id-1", "Google", "google.com", null, null)
+        val repo = FakeCredentialRepository().apply { listAllResult = Result.success(listOf(google)) }
+        val viewModel = HomeViewModel(ListCredentialsUseCase(repo))
+        dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.onQueryChange("zzz")
+
+        assertEquals(emptyList<CredentialSummary>(), viewModel.uiState.value.suggestions)
+    }
 }

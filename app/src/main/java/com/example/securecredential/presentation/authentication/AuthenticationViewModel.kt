@@ -2,6 +2,8 @@ package com.example.securecredential.presentation.authentication
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.securecredential.R
+import com.example.securecredential.core.util.UiText
 import com.example.securecredential.data.security.KeyLifecycleOrchestrator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.crypto.Cipher
@@ -14,7 +16,7 @@ import kotlinx.coroutines.launch
 
 data class AuthenticationUiState(
     val isAuthenticating: Boolean = false,
-    val errorMessage: String? = null,
+    val errorMessage: UiText? = null,
     val unlocked: Boolean = false
 )
 
@@ -44,13 +46,14 @@ class AuthenticationViewModel @Inject constructor(
                     _uiState.update { it.copy(isAuthenticating = false, unlocked = true) }
                 },
                 onFailure = { e ->
-                    _uiState.update { it.copy(isAuthenticating = false, errorMessage = e.message ?: "Unlock failed") }
+                    val message = e.message?.let { UiText.Dynamic(it) } ?: UiText.of(R.string.error_unlock_failed_default)
+                    _uiState.update { it.copy(isAuthenticating = false, errorMessage = message) }
                 }
             )
         }
     }
 
-    fun onAuthenticationFailed(message: String?) {
-        _uiState.update { it.copy(errorMessage = message ?: "Authentication failed") }
+    fun onAuthenticationFailed(reason: UiText? = null) {
+        _uiState.update { it.copy(errorMessage = reason ?: UiText.of(R.string.error_authentication_failed_default)) }
     }
 }

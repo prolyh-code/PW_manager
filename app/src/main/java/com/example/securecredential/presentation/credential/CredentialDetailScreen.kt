@@ -23,9 +23,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.securecredential.R
 import com.example.securecredential.presentation.authentication.CredentialDisplayState
+import com.example.securecredential.presentation.common.BackButton
 import com.example.securecredential.presentation.common.ServiceAvatar
 
 /** Spec 13.3: Masked by default, [View] toggles to Displayed, Security Reset always available. */
@@ -42,7 +45,14 @@ fun CredentialDetailScreen(
         if (uiState.deleted) onBack()
     }
 
-    Scaffold(topBar = { TopAppBar(title = { Text(uiState.credential?.serviceName.orEmpty()) }) }) { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(uiState.credential?.serviceName.orEmpty()) },
+                navigationIcon = { BackButton(onClick = onBack) }
+            )
+        }
+    ) { innerPadding ->
         val credential = uiState.credential
         if (uiState.isLoading || credential == null) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
@@ -64,30 +74,33 @@ fun CredentialDetailScreen(
             }
 
             Spacer(Modifier.height(24.dp))
-            LabeledField("ID", if (isDisplayed) credential.username else credential.usernameMask ?: "••••")
+            LabeledField(stringResource(R.string.label_id), if (isDisplayed) credential.username else credential.usernameMask ?: "••••")
             Spacer(Modifier.height(12.dp))
-            LabeledField("Password", if (isDisplayed) credential.password else credential.passwordMask ?: "••••••••")
+            LabeledField(
+                stringResource(R.string.label_password),
+                if (isDisplayed) credential.password else credential.passwordMask ?: "••••••••"
+            )
 
             credential.category?.let {
                 Spacer(Modifier.height(12.dp))
-                LabeledField("Category", it)
+                LabeledField(stringResource(R.string.label_category), it)
             }
             credential.memo?.let {
                 Spacer(Modifier.height(12.dp))
-                LabeledField("Memo", it)
+                LabeledField(stringResource(R.string.label_memo), it)
             }
 
             Spacer(Modifier.height(32.dp))
             Row {
                 if (isDisplayed) {
-                    OutlinedButton(onClick = viewModel::onSecurityReset) { Text("Hide") }
+                    OutlinedButton(onClick = viewModel::onSecurityReset) { Text(stringResource(R.string.action_hide)) }
                 } else {
-                    Button(onClick = viewModel::onViewClicked) { Text("View") }
+                    Button(onClick = viewModel::onViewClicked) { Text(stringResource(R.string.action_view)) }
                 }
                 Spacer(Modifier.width(12.dp))
-                OutlinedButton(onClick = { onEdit(credential.credentialId) }) { Text("Edit") }
+                OutlinedButton(onClick = { onEdit(credential.credentialId) }) { Text(stringResource(R.string.action_edit)) }
                 Spacer(Modifier.width(12.dp))
-                OutlinedButton(onClick = viewModel::onDelete) { Text("Delete") }
+                OutlinedButton(onClick = viewModel::onDelete) { Text(stringResource(R.string.action_delete)) }
             }
 
             uiState.errorMessage?.let {

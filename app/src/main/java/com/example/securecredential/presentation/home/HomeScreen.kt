@@ -18,12 +18,18 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import com.example.securecredential.R
 import com.example.securecredential.presentation.common.CredentialSummaryRow
 
 /** Spec 13.2/13.3: search-first Home, Bottom Nav (Home/Category/Settings), FAB to add. */
@@ -38,15 +44,30 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    // The ViewModel survives navigating away and back (e.g. Add Credential -> Save -> back to
+    // Home), so `recent` must be refreshed whenever this destination becomes visible again, not
+    // just once in ViewModel init — otherwise a newly-saved credential never appears until the
+    // app is killed and restarted.
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadRecent()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+
     Scaffold(
         floatingActionButton = {
-            FloatingActionButton(onClick = onAddCredential) { Text("+") }
+            FloatingActionButton(onClick = onAddCredential) { Text(stringResource(R.string.action_add)) }
         },
         bottomBar = {
             NavigationBar {
-                NavigationBarItem(selected = true, onClick = {}, icon = {}, label = { Text("Home") })
-                NavigationBarItem(selected = false, onClick = onOpenCategories, icon = {}, label = { Text("Category") })
-                NavigationBarItem(selected = false, onClick = onOpenSettings, icon = {}, label = { Text("Settings") })
+                NavigationBarItem(selected = true, onClick = {}, icon = {}, label = { Text(stringResource(R.string.nav_home)) })
+                NavigationBarItem(selected = false, onClick = onOpenCategories, icon = {}, label = { Text(stringResource(R.string.nav_category)) })
+                NavigationBarItem(selected = false, onClick = onOpenSettings, icon = {}, label = { Text(stringResource(R.string.nav_settings)) })
             }
         }
     ) { innerPadding ->
@@ -54,7 +75,7 @@ fun HomeScreen(
             OutlinedTextField(
                 value = uiState.query,
                 onValueChange = viewModel::onQueryChange,
-                label = { Text("Search by service or domain") },
+                label = { Text(stringResource(R.string.home_search_label)) },
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                 keyboardActions = KeyboardActions(onSearch = {
@@ -64,10 +85,30 @@ fun HomeScreen(
             )
 
             Spacer(Modifier.height(24.dp))
-            Text("Recent", style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
-            LazyColumn {
-                items(uiState.recent, key = { it.credentialId }) { summary ->
-                    CredentialSummaryRow(summary, onClick = { onCredentialClick(summary.credentialId) })
+
+            if (uiState.query.isNotBlank()) {
+                // Live, per-character autocomplete — client-side filter over the already-
+                // decrypted list this screen holds (see HomeViewModel.onQueryChange for why
+                // this doesn't touch the encrypted search index).
+                Text(
+                    stringResource(R.string.section_suggestions), style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+                if (uiState.suggestions.isEmpty()) {
+                    Text(stringResource(R.string.home_no_matches))
+                } else {
+                    LazyColumn {
+                        items(uiState.suggestions, key = { it.credentialId }) { summary ->
+                            CredentialSummaryRow(summary, onClick = { onCredentialClick(summary.credentialId) })
+                        }
+                    }
+                }
+            } else {
+                Text(stringResource(R.string.section_recent), style = MaterialTheme.typography.titleLarge, modifier = Modifier.padding(bottom = 8.dp))
+                LazyColumn {
+                    items(uiState.recent, key = { it.credentialId }) { summary ->
+                        CredentialSummaryRow(summary, onClick = { onCredentialClick(summary.credentialId) })
+                    }
                 }
             }
 

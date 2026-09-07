@@ -17,8 +17,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.securecredential.R
+import com.example.securecredential.presentation.common.BackButton
 import com.example.securecredential.presentation.common.CredentialSummaryRow
 
 /** Spec 13.3: card list — Service/Domain/ID Mask/Password Mask only, never a plaintext password. */
@@ -26,16 +29,24 @@ import com.example.securecredential.presentation.common.CredentialSummaryRow
 @Composable
 fun SearchResultScreen(
     onCredentialClick: (String) -> Unit,
+    onBack: () -> Unit,
     viewModel: SearchResultViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(topBar = { TopAppBar(title = { Text("\"${uiState.query}\"") }) }) { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.search_result_title_format, uiState.query)) },
+                navigationIcon = { BackButton(onClick = onBack) }
+            )
+        }
+    ) { innerPadding ->
         Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
             when {
                 uiState.isSearching -> CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
                 uiState.results.isEmpty() -> Text(
-                    "정확한 서비스명 또는 도메인을 입력하세요", // spec 8.3 no-exact-match hint
+                    stringResource(R.string.search_no_exact_match),
                     modifier = Modifier.align(Alignment.Center).padding(24.dp),
                     style = MaterialTheme.typography.bodyLarge
                 )

@@ -25,36 +25,54 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.securecredential.R
+import com.example.securecredential.core.util.AppLanguage
+import com.example.securecredential.core.util.PinPolicy
+import com.example.securecredential.core.util.asString
 import com.example.securecredential.data.preferences.ThemeMode
 import com.example.securecredential.presentation.authentication.PinDotsIndicator
 import com.example.securecredential.presentation.authentication.PinKeypad
-import com.example.securecredential.core.util.PinPolicy
+import com.example.securecredential.presentation.common.BackButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    onBack: () -> Unit,
     onOpenBackupRestore: () -> Unit,
     onLockedOut: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Scaffold(topBar = { TopAppBar(title = { Text("Settings") }) }) { innerPadding ->
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.title_settings)) },
+                navigationIcon = { BackButton(onClick = onBack) }
+            )
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier.fillMaxSize().padding(innerPadding).padding(16.dp).verticalScroll(rememberScrollState())
         ) {
-            Text("Authentication", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.section_authentication), style = MaterialTheme.typography.titleLarge)
             Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                Text("Biometric unlock", modifier = Modifier.fillMaxWidth().padding(end = 8.dp))
+                Text(stringResource(R.string.label_biometric_unlock), modifier = Modifier.fillMaxWidth().padding(end = 8.dp))
                 Switch(checked = uiState.biometricEnabled, onCheckedChange = viewModel::setBiometricEnabled)
             }
-            TextButton(onClick = viewModel::beginPinChange) { Text("Change PIN") }
+            TextButton(onClick = viewModel::beginPinChange) { Text(stringResource(R.string.action_change_pin)) }
 
             Spacer(Modifier.height(24.dp))
-            Text("Auto Lock", style = MaterialTheme.typography.titleLarge)
-            listOf(15L to "15 seconds", 30L to "30 seconds", 60L to "1 minute", 300L to "5 minutes").forEach { (seconds, label) ->
+            Text(stringResource(R.string.security_setup_autolock_title), style = MaterialTheme.typography.titleLarge)
+            listOf(
+                15L to stringResource(R.string.autolock_option_15s),
+                30L to stringResource(R.string.autolock_option_30s),
+                60L to stringResource(R.string.autolock_option_1m),
+                300L to stringResource(R.string.autolock_option_5m)
+            ).forEach { (seconds, label) ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = uiState.autoLockTimeoutSeconds == seconds, onClick = { viewModel.setAutoLockTimeoutSeconds(seconds) })
                     Text(label)
@@ -62,27 +80,43 @@ fun SettingsScreen(
             }
 
             Spacer(Modifier.height(24.dp))
-            Text("Theme", style = MaterialTheme.typography.titleLarge)
-            ThemeMode.entries.forEach { mode ->
+            Text(stringResource(R.string.section_theme), style = MaterialTheme.typography.titleLarge)
+            listOf(
+                ThemeMode.SYSTEM to stringResource(R.string.theme_system),
+                ThemeMode.LIGHT to stringResource(R.string.theme_light),
+                ThemeMode.DARK to stringResource(R.string.theme_dark)
+            ).forEach { (mode, label) ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     RadioButton(selected = uiState.themeMode == mode, onClick = { viewModel.setThemeMode(mode) })
-                    Text(mode.name)
+                    Text(label)
                 }
             }
 
             Spacer(Modifier.height(24.dp))
-            Text("Backup / Restore", style = MaterialTheme.typography.titleLarge)
-            Button(onClick = onOpenBackupRestore) { Text("Manage Backup") }
+            Text(stringResource(R.string.section_language), style = MaterialTheme.typography.titleLarge)
+            listOf(
+                AppLanguage.KOREAN to stringResource(R.string.language_korean),
+                AppLanguage.ENGLISH to stringResource(R.string.language_english)
+            ).forEach { (language, label) ->
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(selected = uiState.language == language, onClick = { viewModel.setLanguage(language) })
+                    Text(label)
+                }
+            }
 
             Spacer(Modifier.height(24.dp))
-            Text("Security", style = MaterialTheme.typography.titleLarge)
-            OutlinedButton(onClick = { viewModel.onLockNow(); onLockedOut() }) { Text("Lock now") }
+            Text(stringResource(R.string.section_backup_restore), style = MaterialTheme.typography.titleLarge)
+            Button(onClick = onOpenBackupRestore) { Text(stringResource(R.string.action_manage_backup)) }
+
+            Spacer(Modifier.height(24.dp))
+            Text(stringResource(R.string.section_security), style = MaterialTheme.typography.titleLarge)
+            OutlinedButton(onClick = { viewModel.onLockNow(); onLockedOut() }) { Text(stringResource(R.string.action_lock_now)) }
 
             uiState.errorMessage?.let {
-                Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 16.dp))
+                Text(it.asString(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 16.dp))
             }
             uiState.infoMessage?.let {
-                Text(it, modifier = Modifier.padding(top = 16.dp))
+                Text(it.asString(), modifier = Modifier.padding(top = 16.dp))
             }
         }
 
@@ -91,11 +125,13 @@ fun SettingsScreen(
                 onDismissRequest = viewModel::cancelPinChange,
                 title = {
                     Text(
-                        when (uiState.pinChangeStep) {
-                            PinChangeStep.OLD_PIN -> "Enter current PIN"
-                            PinChangeStep.NEW_PIN -> "Enter new PIN"
-                            PinChangeStep.NEW_PIN_CONFIRM -> "Confirm new PIN"
-                        }
+                        stringResource(
+                            when (uiState.pinChangeStep) {
+                                PinChangeStep.OLD_PIN -> R.string.pin_change_title_old
+                                PinChangeStep.NEW_PIN -> R.string.pin_change_title_new
+                                PinChangeStep.NEW_PIN_CONFIRM -> R.string.pin_change_title_confirm
+                            }
+                        )
                     )
                 },
                 text = {
@@ -113,9 +149,9 @@ fun SettingsScreen(
                             PinChangeStep.NEW_PIN -> viewModel.submitNewPin()
                             PinChangeStep.NEW_PIN_CONFIRM -> viewModel.submitNewPinConfirmation()
                         }
-                    }) { Text("Next") }
+                    }) { Text(stringResource(R.string.action_next)) }
                 },
-                dismissButton = { TextButton(onClick = viewModel::cancelPinChange) { Text("Cancel") } }
+                dismissButton = { TextButton(onClick = viewModel::cancelPinChange) { Text(stringResource(R.string.action_cancel)) } }
             )
         }
     }

@@ -2,8 +2,12 @@
 <resources>
     <!--
       Minimal window-level theme; actual UI styling (13.1 purple-gradient/rounded-card
-      language) is implemented in Compose (presentation/common/theme) starting Milestone D,
-      not here. This only controls the pre-Compose window background/status bar.
+      language) is implemented in Compose (presentation/common/theme), not here — this only
+      controls the pre-Compose window background/status bar. Parent MUST be a Theme.AppCompat
+      (or MaterialComponents) descendant, not a plain platform theme: MainActivity extends
+      AppCompatActivity (required by AppCompatDelegate.setApplicationLocales() for the
+      Settings > Language feature to actually work on API < 33), and AppCompatActivity requires
+      an AppCompat-derived theme even though all real UI is Compose.
     -->
-    <style name="Theme.SecureVault" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.SecureVault" parent="Theme.AppCompat.DayNight.NoActionBar" />
 </resources>

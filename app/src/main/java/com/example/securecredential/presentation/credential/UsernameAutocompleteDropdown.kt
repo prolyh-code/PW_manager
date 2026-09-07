@@ -4,6 +4,8 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
+import com.example.securecredential.R
 import com.example.securecredential.domain.model.CredentialSummary
 
 /**
@@ -23,7 +25,15 @@ fun UsernameAutocompleteDropdown(
     DropdownMenu(expanded = suggestions.isNotEmpty(), onDismissRequest = onDismiss) {
         suggestions.forEach { summary ->
             DropdownMenuItem(
-                text = { Text("${summary.usernameMask ?: "••••"} · already used for ${summary.serviceName}") },
+                text = {
+                    Text(
+                        stringResource(
+                            R.string.reuse_dropdown_suggestion_format,
+                            summary.usernameMask ?: "••••",
+                            summary.serviceName
+                        )
+                    )
+                },
                 onClick = { onSelect(currentUsername) }
             )
         }

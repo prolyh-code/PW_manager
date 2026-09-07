@@ -20,8 +20,11 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.securecredential.R
+import com.example.securecredential.core.util.asString
 
 @Composable
 fun SecuritySetupScreen(
@@ -42,7 +45,7 @@ fun SecuritySetupScreen(
             SecuritySetupStep.AUTO_LOCK -> AutoLockStep(uiState, viewModel)
         }
         uiState.errorMessage?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 16.dp))
+            Text(it.asString(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 16.dp))
         }
     }
 }
@@ -50,24 +53,28 @@ fun SecuritySetupScreen(
 @Composable
 private fun BiometricStep(uiState: SecuritySetupUiState, viewModel: SecuritySetupViewModel) {
     Text(
-        "Enable biometric unlock?",
+        stringResource(R.string.security_setup_biometric_title),
         style = MaterialTheme.typography.headlineSmall,
         modifier = Modifier.padding(top = 48.dp, bottom = 24.dp)
     )
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Text("Use fingerprint / face unlock")
+        Text(stringResource(R.string.security_setup_biometric_toggle_label))
         Spacer(Modifier.height(0.dp))
         Switch(checked = uiState.biometricEnabled, onCheckedChange = viewModel::setBiometricEnabled)
     }
     Spacer(Modifier.height(32.dp))
-    Button(onClick = { viewModel.goToStep(SecuritySetupStep.PIN_CREATE) }) { Text("Continue") }
+    Button(onClick = { viewModel.goToStep(SecuritySetupStep.PIN_CREATE) }) { Text(stringResource(R.string.action_continue)) }
 }
 
 @Composable
 private fun PinCreateStep(uiState: SecuritySetupUiState, viewModel: SecuritySetupViewModel) {
-    Text("Create your PIN", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 48.dp))
     Text(
-        "At least ${SecuritySetupViewModel.MIN_NUMERIC_LENGTH} digits — this PIN also protects Backup recovery.",
+        stringResource(R.string.security_setup_pin_create_title),
+        style = MaterialTheme.typography.headlineSmall,
+        modifier = Modifier.padding(top = 48.dp)
+    )
+    Text(
+        stringResource(R.string.security_setup_pin_hint, SecuritySetupViewModel.MIN_NUMERIC_LENGTH),
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.padding(vertical = 8.dp)
     )
@@ -77,13 +84,15 @@ private fun PinCreateStep(uiState: SecuritySetupUiState, viewModel: SecuritySetu
     )
     PinKeypad(onDigit = viewModel::appendDigit, onBackspace = viewModel::backspace)
     Spacer(Modifier.height(24.dp))
-    Button(onClick = viewModel::confirmPinAndProceed, enabled = uiState.pin.isNotEmpty()) { Text("Continue") }
+    Button(onClick = viewModel::confirmPinAndProceed, enabled = uiState.pin.isNotEmpty()) {
+        Text(stringResource(R.string.action_continue))
+    }
 }
 
 @Composable
 private fun PinConfirmStep(uiState: SecuritySetupUiState, viewModel: SecuritySetupViewModel) {
     Text(
-        "Confirm your PIN",
+        stringResource(R.string.security_setup_pin_confirm_title),
         style = MaterialTheme.typography.headlineSmall,
         modifier = Modifier.padding(top = 48.dp, bottom = 24.dp)
     )
@@ -94,14 +103,23 @@ private fun PinConfirmStep(uiState: SecuritySetupUiState, viewModel: SecuritySet
     PinKeypad(onDigit = viewModel::appendDigit, onBackspace = viewModel::backspace)
     Spacer(Modifier.height(24.dp))
     Button(onClick = viewModel::submitPinConfirmationAndProceed, enabled = uiState.pinConfirmation.isNotEmpty()) {
-        Text("Continue")
+        Text(stringResource(R.string.action_continue))
     }
 }
 
 @Composable
 private fun AutoLockStep(uiState: SecuritySetupUiState, viewModel: SecuritySetupViewModel) {
-    Text("Auto Lock", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 48.dp, bottom = 24.dp))
-    val options = listOf(15L to "15 seconds", 30L to "30 seconds", 60L to "1 minute", 300L to "5 minutes")
+    Text(
+        stringResource(R.string.security_setup_autolock_title),
+        style = MaterialTheme.typography.headlineSmall,
+        modifier = Modifier.padding(top = 48.dp, bottom = 24.dp)
+    )
+    val options = listOf(
+        15L to stringResource(R.string.autolock_option_15s),
+        30L to stringResource(R.string.autolock_option_30s),
+        60L to stringResource(R.string.autolock_option_1m),
+        300L to stringResource(R.string.autolock_option_5m)
+    )
     options.forEach { (seconds, label) ->
         Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
             RadioButton(selected = uiState.autoLockTimeoutSeconds == seconds, onClick = { viewModel.setAutoLockTimeoutSeconds(seconds) })
@@ -113,7 +131,7 @@ private fun AutoLockStep(uiState: SecuritySetupUiState, viewModel: SecuritySetup
         if (uiState.isSubmitting) {
             CircularProgressIndicator(modifier = Modifier.height(18.dp))
         } else {
-            Text("Finish Setup")
+            Text(stringResource(R.string.action_finish_setup))
         }
     }
 }

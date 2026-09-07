@@ -24,10 +24,14 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.securecredential.R
+import com.example.securecredential.core.util.asString
+import com.example.securecredential.presentation.common.BackButton
 
 /** Spec 13.3 Credential Registration/Edit form. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -44,7 +48,12 @@ fun CredentialFormScreen(
     }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text(if (uiState.isEditing) "Edit Credential" else "Add Credential") }) }
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(if (uiState.isEditing) R.string.title_edit_credential else R.string.title_add_credential)) },
+                navigationIcon = { BackButton(onClick = onCancel) }
+            )
+        }
     ) { innerPadding ->
         if (uiState.isLoading) {
             Box(modifier = Modifier.fillMaxSize().padding(innerPadding), contentAlignment = Alignment.Center) {
@@ -63,7 +72,7 @@ fun CredentialFormScreen(
             OutlinedTextField(
                 value = uiState.url,
                 onValueChange = viewModel::onUrlChange,
-                label = { Text("URL") },
+                label = { Text(stringResource(R.string.label_url)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -71,7 +80,7 @@ fun CredentialFormScreen(
             OutlinedTextField(
                 value = uiState.serviceName,
                 onValueChange = viewModel::onServiceNameChange,
-                label = { Text("Service Name") },
+                label = { Text(stringResource(R.string.label_service_name)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -80,7 +89,7 @@ fun CredentialFormScreen(
                 OutlinedTextField(
                     value = uiState.username,
                     onValueChange = viewModel::onUsernameChange,
-                    label = { Text("ID") },
+                    label = { Text(stringResource(R.string.label_id)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -95,7 +104,7 @@ fun CredentialFormScreen(
             OutlinedTextField(
                 value = uiState.password,
                 onValueChange = viewModel::onPasswordChange,
-                label = { Text("Password") },
+                label = { Text(stringResource(R.string.label_password)) },
                 singleLine = true,
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
@@ -105,7 +114,7 @@ fun CredentialFormScreen(
             OutlinedTextField(
                 value = uiState.usernameMask,
                 onValueChange = viewModel::onUsernameMaskChange,
-                label = { Text("ID Mask (how it appears in search results)") },
+                label = { Text(stringResource(R.string.label_username_mask)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -113,7 +122,7 @@ fun CredentialFormScreen(
             OutlinedTextField(
                 value = uiState.passwordMask,
                 onValueChange = viewModel::onPasswordMaskChange,
-                label = { Text("Password Mask (how it appears in search results)") },
+                label = { Text(stringResource(R.string.label_password_mask)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -121,7 +130,7 @@ fun CredentialFormScreen(
             OutlinedTextField(
                 value = uiState.category,
                 onValueChange = viewModel::onCategoryChange,
-                label = { Text("Category") },
+                label = { Text(stringResource(R.string.label_category)) },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -129,7 +138,7 @@ fun CredentialFormScreen(
             OutlinedTextField(
                 value = uiState.memo,
                 onValueChange = viewModel::onMemoChange,
-                label = { Text("Memo") },
+                label = { Text(stringResource(R.string.label_memo)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -139,11 +148,11 @@ fun CredentialFormScreen(
                 enabled = !uiState.isSaving && uiState.serviceName.isNotBlank() && uiState.username.isNotBlank(),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (uiState.isSaving) CircularProgressIndicator(modifier = Modifier.padding(2.dp)) else Text("Save")
+                if (uiState.isSaving) CircularProgressIndicator(modifier = Modifier.padding(2.dp)) else Text(stringResource(R.string.action_save))
             }
 
             uiState.errorMessage?.let {
-                Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 16.dp))
+                Text(it.asString(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 16.dp))
             }
         }
 

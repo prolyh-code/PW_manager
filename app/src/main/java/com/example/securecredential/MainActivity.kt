@@ -7,8 +7,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.ui.Modifier
-import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.securecredential.data.preferences.ThemeMode
 import com.example.securecredential.presentation.common.ThemeViewModel
@@ -16,10 +16,14 @@ import com.example.securecredential.presentation.common.theme.SecureVaultTheme
 import com.example.securecredential.presentation.navigation.SecureVaultNavHost
 import dagger.hilt.android.AndroidEntryPoint
 
-// FragmentActivity (not bare ComponentActivity) because androidx.biometric.BiometricPrompt
-// requires a FragmentActivity/Fragment host (data.security.BiometricAuthManager).
+// AppCompatActivity (not bare ComponentActivity/FragmentActivity) for two reasons:
+// 1. androidx.biometric.BiometricPrompt requires a FragmentActivity/Fragment host
+//    (data.security.BiometricAuthManager) — AppCompatActivity extends FragmentActivity.
+// 2. AppCompatDelegate.setApplicationLocales() (Settings > Language) only actually applies
+//    the per-app locale on API < 33 when the hosting Activity is an AppCompatActivity —
+//    with a plain FragmentActivity, the locale is stored but never applied to resources.
 @AndroidEntryPoint
-class MainActivity : FragmentActivity() {
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {

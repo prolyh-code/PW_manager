@@ -25,16 +25,14 @@ import com.example.securecredential.presentation.authentication.LaunchDestinatio
 import com.example.securecredential.presentation.authentication.LaunchViewModel
 import com.example.securecredential.presentation.authentication.SecuritySetupScreen
 import com.example.securecredential.presentation.backup.BackupRestoreScreen
+import com.example.securecredential.presentation.category.CredentialListScreen
 import com.example.securecredential.presentation.credential.CredentialDetailScreen
 import com.example.securecredential.presentation.credential.CredentialFormScreen
 import com.example.securecredential.presentation.home.HomeScreen
 import com.example.securecredential.presentation.search.SearchResultScreen
 import com.example.securecredential.presentation.settings.SettingsScreen
 
-/**
- * Navigation shell per spec 13.2. Only CredentialList (Category browsing) remains a TODO stub;
- * everything else is wired to real screens.
- */
+/** Navigation shell per spec 13.2 — every destination is wired to a real screen. */
 @Composable
 fun SecureVaultNavHost(navController: NavHostController = rememberNavController()) {
     Scaffold { innerPadding ->
@@ -102,11 +100,18 @@ fun SecureVaultNavHost(navController: NavHostController = rememberNavController(
                 arguments = listOf(navArgument("query") { type = NavType.StringType })
             ) {
                 SearchResultScreen(
-                    onCredentialClick = { id -> navController.navigate(Routes.CredentialDetail.createRoute(id)) }
+                    onCredentialClick = { id -> navController.navigate(Routes.CredentialDetail.createRoute(id)) },
+                    onBack = { navController.popBackStack() }
                 )
             }
 
-            composable(Routes.CredentialList.route) { TodoScreen("Credential List") }
+            composable(Routes.CredentialList.route) {
+                CredentialListScreen(
+                    onBack = { navController.popBackStack() },
+                    onCredentialClick = { id -> navController.navigate(Routes.CredentialDetail.createRoute(id)) },
+                    onAddCredential = { navController.navigate(Routes.CredentialForm.createRouteForNew()) }
+                )
+            }
 
             composable(
                 Routes.CredentialDetail.route,
@@ -130,6 +135,7 @@ fun SecureVaultNavHost(navController: NavHostController = rememberNavController(
 
             composable(Routes.Settings.route) {
                 SettingsScreen(
+                    onBack = { navController.popBackStack() },
                     onOpenBackupRestore = { navController.navigate(Routes.BackupRestore.route) },
                     onLockedOut = {
                         navController.navigate(Routes.Authentication.route) {
@@ -141,6 +147,7 @@ fun SecureVaultNavHost(navController: NavHostController = rememberNavController(
 
             composable(Routes.BackupRestore.route) {
                 BackupRestoreScreen(
+                    onBack = { navController.popBackStack() },
                     onRestoreComplete = {
                         navController.navigate(Routes.Home.route) {
                             popUpTo(Routes.Launch.route) { inclusive = true }

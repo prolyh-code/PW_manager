@@ -2,7 +2,9 @@ package com.example.securecredential.presentation.backup
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.securecredential.R
 import com.example.securecredential.core.util.PinPolicy
+import com.example.securecredential.core.util.UiText
 import com.example.securecredential.data.security.CryptoManager
 import com.example.securecredential.data.security.KeyLifecycleError
 import com.example.securecredential.data.security.KeyLifecycleOrchestrator
@@ -23,7 +25,7 @@ data class BackupRestoreUiState(
     val restorePin: String = "",
     val isRestoring: Boolean = false,
     val restoreComplete: Boolean = false,
-    val errorMessage: String? = null
+    val errorMessage: UiText? = null
 )
 
 /**
@@ -59,7 +61,7 @@ class BackupRestoreViewModel @Inject constructor(
             if (!runDecryptTest(recovered)) {
                 cryptoManager.clearKeys()
                 _uiState.update {
-                    it.copy(isRestoring = false, errorMessage = "Recovered key failed to decrypt stored data (KEY-004)")
+                    it.copy(isRestoring = false, errorMessage = UiText.of(R.string.error_restore_decrypt_failed))
                 }
                 return@launch
             }
@@ -78,10 +80,10 @@ class BackupRestoreViewModel @Inject constructor(
         return getCredentialUseCase(summaries.first().credentialId).isSuccess
     }
 
-    private fun describeRestoreError(e: Throwable): String = when (e) {
-        is RecoveryUnwrapError.PinMismatch -> "Incorrect PIN"
-        is RecoveryUnwrapError.AttemptLimited -> "Too many attempts — try again in ${e.retryAfterSeconds}s"
-        is KeyLifecycleError.NotInitialized -> "No backup data found on this device"
-        else -> e.message ?: "Restore failed"
+    private fun describeRestoreError(e: Throwable): UiText = when (e) {
+        is RecoveryUnwrapError.PinMismatch -> UiText.of(R.string.error_incorrect_pin)
+        is RecoveryUnwrapError.AttemptLimited -> UiText.of(R.string.error_too_many_attempts_format, e.retryAfterSeconds)
+        is KeyLifecycleError.NotInitialized -> UiText.of(R.string.error_no_backup_data)
+        else -> e.message?.let { UiText.Dynamic(it) } ?: UiText.of(R.string.error_restore_failed_default)
     }
 }

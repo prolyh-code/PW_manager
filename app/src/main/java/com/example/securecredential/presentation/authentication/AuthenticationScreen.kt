@@ -22,9 +22,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.securecredential.R
+import com.example.securecredential.core.util.UiText
+import com.example.securecredential.core.util.asString
 import com.example.securecredential.data.security.BiometricAuthManager
 import com.example.securecredential.data.security.BiometricResult
 import kotlinx.coroutines.launch
@@ -46,6 +50,11 @@ fun AuthenticationScreen(
     val biometricAuthManager = remember { BiometricAuthManager(activity) }
     val scope = rememberCoroutineScope()
 
+    // Captured here (a @Composable context) since these are used by real Android APIs
+    // (BiometricPrompt) that need an already-resolved String, not a UiText.
+    val unlockPromptTitle = stringResource(R.string.unlock_prompt_title, stringResource(R.string.app_name))
+    val cancelLabel = stringResource(R.string.action_cancel)
+
     LaunchedEffect(uiState.unlocked) {
         if (uiState.unlocked) onUnlocked()
     }
@@ -53,16 +62,16 @@ fun AuthenticationScreen(
     fun startAuthentication(allowedAuthenticators: Int) {
         scope.launch {
             val cipher = viewModel.prepareCipher().getOrElse {
-                viewModel.onAuthenticationFailed(it.message)
+                viewModel.onAuthenticationFailed(it.message?.let { m -> UiText.Dynamic(m) })
                 return@launch
             }
             val promptInfoBuilder = BiometricPrompt.PromptInfo.Builder()
-                .setTitle("Unlock SecureVault")
+                .setTitle(unlockPromptTitle)
                 .setAllowedAuthenticators(allowedAuthenticators)
             // A negative ("Cancel") button is only valid when a biometric class is allowed;
             // DEVICE_CREDENTIAL-only prompts provide their own system back-navigation instead.
             if (allowedAuthenticators == BiometricManager.Authenticators.BIOMETRIC_STRONG) {
-                promptInfoBuilder.setNegativeButtonText("Cancel")
+                promptInfoBuilder.setNegativeButtonText(cancelLabel)
             }
 
             when (val result = biometricAuthManager.authenticate(
@@ -70,9 +79,9 @@ fun AuthenticationScreen(
                 BiometricPrompt.CryptoObject(cipher)
             )) {
                 is BiometricResult.Success -> viewModel.onAuthenticationSucceeded(result.cryptoObject?.cipher ?: cipher)
-                is BiometricResult.Failed -> viewModel.onAuthenticationFailed("Not recognized — try again")
+                is BiometricResult.Failed -> viewModel.onAuthenticationFailed(UiText.of(R.string.error_biometric_not_recognized))
                 is BiometricResult.Cancelled -> Unit
-                is BiometricResult.Error -> viewModel.onAuthenticationFailed("Authentication error")
+                is BiometricResult.Error -> viewModel.onAuthenticationFailed(UiText.of(R.string.error_authentication_generic))
             }
         }
     }
@@ -82,23 +91,23 @@ fun AuthenticationScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("SecureVault", style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineMedium)
         Spacer(Modifier.height(48.dp))
 
         if (uiState.isAuthenticating) {
             CircularProgressIndicator()
         } else {
             Button(onClick = { startAuthentication(BiometricManager.Authenticators.BIOMETRIC_STRONG) }) {
-                Text("Use fingerprint")
+                Text(stringResource(R.string.action_use_fingerprint))
             }
             Spacer(Modifier.height(12.dp))
             OutlinedButton(onClick = { startAuthentication(BiometricManager.Authenticators.DEVICE_CREDENTIAL) }) {
-                Text("Use PIN")
+                Text(stringResource(R.string.action_use_pin))
             }
         }
 
         uiState.errorMessage?.let {
-            Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 24.dp))
+            Text(it.asString(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(top = 24.dp))
         }
     }
 }

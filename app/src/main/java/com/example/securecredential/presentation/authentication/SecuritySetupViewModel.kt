@@ -2,7 +2,9 @@ package com.example.securecredential.presentation.authentication
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.securecredential.R
 import com.example.securecredential.core.util.PinPolicy
+import com.example.securecredential.core.util.UiText
 import com.example.securecredential.data.preferences.AppPreferences
 import com.example.securecredential.data.security.KeyLifecycleOrchestrator
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -25,7 +27,7 @@ data class SecuritySetupUiState(
     val pinConfirmation: String = "",
     val autoLockTimeoutSeconds: Long = 30,
     val isSubmitting: Boolean = false,
-    val errorMessage: String? = null,
+    val errorMessage: UiText? = null,
     val completed: Boolean = false
 )
 
@@ -74,7 +76,7 @@ class SecuritySetupViewModel @Inject constructor(
     fun confirmPinAndProceed() {
         val pin = _uiState.value.pin
         if (!PinPolicy.isValid(pin)) {
-            _uiState.update { it.copy(errorMessage = "PIN must be at least $MIN_NUMERIC_LENGTH digits") }
+            _uiState.update { it.copy(errorMessage = UiText.of(R.string.error_pin_too_short, MIN_NUMERIC_LENGTH)) }
             return
         }
         goToStep(SecuritySetupStep.PIN_CONFIRM)
@@ -83,7 +85,7 @@ class SecuritySetupViewModel @Inject constructor(
     fun submitPinConfirmationAndProceed() {
         val state = _uiState.value
         if (state.pin != state.pinConfirmation) {
-            _uiState.update { it.copy(pinConfirmation = "", errorMessage = "PINs didn't match — try again") }
+            _uiState.update { it.copy(pinConfirmation = "", errorMessage = UiText.of(R.string.error_pin_mismatch)) }
             return
         }
         goToStep(SecuritySetupStep.AUTO_LOCK)
@@ -100,7 +102,10 @@ class SecuritySetupViewModel @Inject constructor(
             appPreferences.setAutoLockTimeout(state.autoLockTimeoutSeconds.seconds)
             result.fold(
                 onSuccess = { _uiState.update { it.copy(isSubmitting = false, completed = true) } },
-                onFailure = { e -> _uiState.update { it.copy(isSubmitting = false, errorMessage = e.message ?: "Setup failed") } }
+                onFailure = { e ->
+                    val message = e.message?.let { UiText.Dynamic(it) } ?: UiText.of(R.string.error_setup_failed)
+                    _uiState.update { it.copy(isSubmitting = false, errorMessage = message) }
+                }
             )
         }
     }
